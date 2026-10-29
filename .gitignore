@@ -1,0 +1,13 @@
+bin/
+obj/
+*.user
+.vs/
+node_modules/
+frontend/dist/
+TestResults/
+*.log
+.env
+
+# Local proxy/CA certificates are environment-specific; never commit them (keep certs/README.md)
+certs/*.crt
+certs/*.pem

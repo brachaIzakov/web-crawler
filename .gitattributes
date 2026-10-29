@@ -1,0 +1,5 @@
+# Normalize line endings so the tree is identical on Windows, macOS and Linux (Dockerfiles, YAML and shell stay LF).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary

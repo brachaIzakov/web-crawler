@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+**/node_modules/
+frontend/dist/
+.git/
+.vs/
+*.md
+# keep certs/ present in the build context (Dockerfiles COPY it)
+!certs/README.md

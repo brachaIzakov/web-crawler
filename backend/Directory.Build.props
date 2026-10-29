@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <!-- Pinned to the .NET 8 SDK's language version so the host SDK (which may be newer) cannot accept code the Docker/CI build rejects. -->
+    <LangVersion>12</LangVersion>
+  </PropertyGroup>
+</Project>

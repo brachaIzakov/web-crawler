@@ -1,0 +1,98 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    # Credentials come from .env (see .env.example); the defaults are for local development only.
+    environment:
+      POSTGRES_DB: crawler
+      POSTGRES_USER: ${POSTGRES_USER:-crawler}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-crawler}
+    ports:
+      - "127.0.0.1:5433:5432"   # host port 5433 avoids clashing with a locally installed Postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-crawler} -d crawler"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"   # management UI: http://localhost:15672 (guest/guest)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/src/Crawler.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=crawler;Username=${POSTGRES_USER:-crawler};Password=${POSTGRES_PASSWORD:-crawler}
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Port: "5672"
+      RabbitMq__UserName: ${RABBITMQ_USER:-guest}
+      RabbitMq__Password: ${RABBITMQ_PASSWORD:-guest}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+
+  worker:
+    build:
+      context: .
+      dockerfile: backend/src/Crawler.Worker/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8081
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=crawler;Username=${POSTGRES_USER:-crawler};Password=${POSTGRES_PASSWORD:-crawler}
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Port: "5672"
+      RabbitMq__UserName: ${RABBITMQ_USER:-guest}
+      RabbitMq__Password: ${RABBITMQ_PASSWORD:-guest}
+      Crawl__MaxConcurrentFetches: "4"
+    # Two workers: jobs run in parallel and the lease/idempotency path is exercised for real.
+    # No host port: the worker is reached only by the Docker healthcheck (see README for manual checks).
+    deploy:
+      replicas: 2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      api:
+        condition: service_healthy   # the API only reports healthy after migrations ran; the worker must never see a pre-migration schema
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

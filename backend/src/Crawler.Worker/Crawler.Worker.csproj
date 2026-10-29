@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Crawler.Infrastructure\Crawler.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="8.0.2" />
+    <PackageReference Include="AspNetCore.HealthChecks.Rabbitmq" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="8.10.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Crawler.Worker.Tests" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <!-- Parsing runs in parallel with fetching; Server GC keeps that a net win on allocation-heavy HTML. -->
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>
