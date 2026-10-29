@@ -23,7 +23,6 @@ backend/                      .NET 8 solution (Crawler.sln)
   tests/Crawler.Worker.Tests  integration tests: real engine + SQLite + local HTML fixtures; fetcher/classifier/policy units
   tests/Crawler.Api.Tests     endpoint tests with WebApplicationFactory (SQLite, fake publisher)
 frontend/                     React + Vite + TypeScript SPA (+ nginx config and Dockerfile)
-certs/                        optional extra CA certificates trusted by the images (corporate TLS inspection)
 docker-compose.yml            postgres · rabbitmq · api · worker · web
 .github/workflows/ci.yml      backend build+test · frontend build · docker images
 ```
@@ -67,10 +66,6 @@ Credentials default to local-development values; copy `.env.example` to `.env` t
 Infrastructure ports are bound to loopback. The API applies EF Core migrations on startup under a Postgres advisory
 lock (safe with several replicas); the worker and the API declare the RabbitMQ topology on startup, both retrying
 while their dependencies boot.
-
-**Behind a TLS-inspecting proxy?** Drop the proxy's root certificate(s) as `certs/*.crt` before `docker compose build`.
-They are trusted by the image builds (NuGet, npm) and by the API/worker at runtime, so HTTPS sites can be crawled.
-Nothing changes when the directory is empty.
 
 ### Dev loop without containers for the apps
 

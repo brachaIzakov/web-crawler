@@ -8,6 +8,3 @@ TestResults/
 *.log
 .env
 
-# Local proxy/CA certificates are environment-specific; never commit them (keep certs/README.md)
-certs/*.crt
-certs/*.pem

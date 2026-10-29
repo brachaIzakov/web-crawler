@@ -2,11 +2,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Extra CA certificates (e.g. a corporate TLS-inspecting proxy) dropped into ./certs/*.crt are trusted
-# by the build (NuGet) and copied into the runtime image below. The directory is empty by default.
-COPY certs/ /usr/local/share/ca-certificates/extra/
-RUN update-ca-certificates >/dev/null
-
 # Restore first so dependency layers are cached independently of source changes.
 COPY backend/Directory.Build.props ./
 COPY backend/src/Crawler.Domain/Crawler.Domain.csproj src/Crawler.Domain/
@@ -20,8 +15,6 @@ RUN dotnet publish src/Crawler.Api/Crawler.Api.csproj -c Release -o /app --no-re
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends wget && rm -rf /var/lib/apt/lists/*
-COPY --from=build /usr/local/share/ca-certificates/extra/ /usr/local/share/ca-certificates/extra/
-RUN update-ca-certificates >/dev/null
 COPY --from=build /app .
 EXPOSE 8080
 # The aspnet image ships a non-root "app" user; 8080 needs no privileges.
