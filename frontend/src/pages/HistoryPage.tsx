@@ -9,6 +9,7 @@ import { useRerun } from '../hooks/useRerun'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { Loading } from '../components/Loading'
 import { Pagination } from '../components/Pagination'
+import { ProgressBar } from '../components/ProgressBar'
 import { StatusBadge } from '../components/StatusBadge'
 import { Time } from '../components/Time'
 
@@ -87,7 +88,7 @@ export function HistoryPage() {
         <table className="history-table">
           <thead>
             <tr>
-              <th>Created</th><th>URL</th><th>Status</th><th>Crawled / discovered</th>
+              <th>Created</th><th>URL</th><th>Status</th><th>Progress (crawled / discovered)</th>
               <th>Depth</th><th>Duration</th><th><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
@@ -102,7 +103,17 @@ export function HistoryPage() {
                     <Link className="mono" to={`/jobs/${j.jobId}`} title={j.inputUrl}>{j.inputUrl}</Link>
                   </td>
                   <td data-label="Status"><StatusBadge status={j.status} /></td>
-                  <td data-label="Crawled / discovered">{j.pagesCrawled} / {j.pagesDiscovered}</td>
+                  <td data-label="Progress" className="progress-cell">
+                    <div className="progress-cell-body">
+                      <span>{j.pagesCrawled} / {j.pagesDiscovered}</span>
+                      {running && (
+                        <ProgressBar
+                          percent={j.pagesDiscovered > 0 ? (j.pagesCrawled * 100) / j.pagesDiscovered : 0}
+                          active
+                        />
+                      )}
+                    </div>
+                  </td>
                   <td data-label="Depth">{j.maxDepth}</td>
                   <td data-label="Duration">{fmtDuration(dur)}{running && dur !== null && <span className="muted"> (so far)</span>}</td>
                   <td className="row-actions">

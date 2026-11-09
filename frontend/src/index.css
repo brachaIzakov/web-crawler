@@ -283,3 +283,7 @@ th { font-size: .8rem; color: var(--muted); font-weight: 600; }
   .history-table .url-cell a { min-width: 0; }
   .row-actions { text-align: left; padding-top: .4rem !important; }
 }
+
+.progress-cell { min-width: 150px; }
+.progress-cell .progress { height: 6px; margin-top: 4px; }
+.progress-cell-body { flex: 1 1 auto; min-width: 0; }
